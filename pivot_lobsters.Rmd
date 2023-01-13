@@ -1,0 +1,141 @@
+---
+title: "pivot_lobsters"
+author: "Erin Aylsworth"
+date: '2023-01-13'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+library(tidyverse)
+library(readxl)
+library(here)
+library(skimr) # install.packages("skimr")
+library(kableExtra) # install.packages("kableExtra")
+
+```
+
+
+### Read in the first file: lobsters.xlsx
+
+``` {r} 
+lobsters <- read_xlsx(here("data/lobsters.xlsx"), skip = 4)
+```
+
+### 6.2.2.1 skimr::skim
+
+Let's look at the summary statistics with skimr.
+
+``` {r}
+
+# explore data
+
+skimr::skim(lobsters)
+
+```
+
+There are three character variables and four numeric.
+
+### 6.2.3 Our task
+
+We have been asked to report about how the average size of lobsters has changed for each site across time.
+
+We will complete this task with R by using the dplyr packages for data wrangling, which we will do after dmeoing how this would do it with pivot tables in Excel.
+
+### 6.4.1 group_by one variable
+
+Let's use group_by() %>% summarize() with our lobsters data, just like we did in Excel.
+
+``` {r}
+
+lobsters |>
+        group_by(year) |>
+        summarize(count_by_year = n())
+
+```
+
+### 6.4.2 group_by multiple variables
+
+``` {r}
+
+lobsters |>
+        group_by(site, year) |>
+        summarize(count_by_siteyear = n())
+
+```
+
+### 6.4.2 summarize() multiple variables
+
+We can summarize multiple variables at a time.
+
+``` {r}
+
+lobsters |>
+        group_by(site, year) |>
+        summarize(count_by_siteyear = n(),
+                  mean_size_mm = mean(size_mm))
+```
+
+Oooooops, there are missing values, or NA. We can remove them and save the output for further investigation:
+
+```{r}
+
+siteyear_summary <- lobsters |>
+        group_by(site, year) |>
+        summarize(count_by_siteyear = n(),
+                  mean_size_mm = mean(size_mm, na.rm = TRUE),
+                  sd_size_mm = sd(size_mm, na.rm = TRUE))
+```
+
+Let's inspect our new variable:
+
+```{r} 
+
+## inspect our new variable
+
+siteyear_summary
+
+```
+
+### 6.4.4 Table formatting with kable()
+
+There are several options for formatting tables in RMArkdown; we'll show one here from the kableExtra package and learn more about it tomorrow.
+
+It works nicely with the pipe operator, so we can build this from our new object:
+
+``` {r}
+
+## make a table with our new variable
+
+siteyear_summary |>
+        kable()
+
+```
+
+There are `r nrow(lobsters)` total lobsters included in this report.
+
+### 6.4.6 Activity on your own!
+
+Build from our analysis and calculate the mean lobster size for each site year.
+
+Create and ggsave a plot
+
+Then save, commit, and push your .Rmd, .html, and .png.
+
+OK, here goes my attempt to first get the median
+
+``` {r} 
+
+my_summary <- lobsters |>
+        group_by(site, year) |>
+        summarize(count_by_siteyear = n(),
+                  median_size_mm = median(size_mm, na.rm = TRUE))
+
+ggplot(data = my_summary, aes(x = year, y = median_size_mm, color = site)) +
+        geom_line()
+
+ggsave(here("figures", "lobsters_median.png"))
+
+```
+
+
