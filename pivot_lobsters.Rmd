@@ -138,4 +138,37 @@ ggsave(here("figures", "lobsters_median.png"))
 
 ```
 
+### 6.5 Oh, no! They sent the wrong data!
+
+Not a problem! We can go back to our RMarkdown file, read in the new data, and knit.
+
+All we really need to do is read in the NEW data as the "lobsters" file
+
+``` {r}
+
+lobsters <- read_xlsx(here("data/lobsters2.xlsx"), skip = 4)
+
+```
+
+THEN, re-run the code from earlier sections. I'm going to copy/paste it here, for ease:
+
+
+``` {r} 
+
+my_summary <- lobsters |>
+        group_by(site, year) |>
+        summarize(count_by_siteyear = n(),
+                  median_size_mm = median(size_mm, na.rm = TRUE))
+
+ggplot(data = my_summary, aes(x = year, y = median_size_mm, color = site)) +
+        geom_line()
+
+ggsave(here("figures", "lobsters_median.png"))
+
+```
+
+I'm going to knit, push, and show differences on GitHub.
+
+
+
 
